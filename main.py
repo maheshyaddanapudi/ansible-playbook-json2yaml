@@ -12,8 +12,8 @@ except ImportError:
     from yaml import Loader, Dumper
 
 
-@app.route('/', methods=['POST'])
-def playbook_generator():
+@app.route('/generate-yaml', methods=['POST'])
+def playbook_yaml_generator():
     playbook = '---'
     try:
         plays = []
@@ -25,7 +25,7 @@ def playbook_generator():
 
         for a_play in request_json:
 
-            play_name = 'Play_'+str(play_counter)+' - '+a_play['name']
+            play_name = a_play['name']
 
             print('Starting preparation of : Play_'+str(play_counter))
 
@@ -39,22 +39,46 @@ def playbook_generator():
 
                 print('Starting preparation of : Task_' + str(task_counter))
 
+                free_form_found = False
+
                 args = ''
                 for k, v in a_module['input_fields'].items():
+
+                    if k == 'free_form':
+                        free_form_found = True
+
                     if args == '' and v != '' and v is not None and v != 'null':
                         args = args + k + '="' + v + '"'
                     elif v != '' and v is not None and v != 'null':
                         args = args + ' ' + k + '="' + v + '"'
 
+                task = dict()
                 become_as = ''
                 become_method = 'su'
                 delegate_to = ''
                 no_log = False
+                register_out = ''
+                when_condition = ''
+                with_items = ''
+
+                try:
+                    when_condition = a_module['when']
+                    task['when'] = when_condition
+                except Exception as e:
+                    print(str(e) + ' not found in task definition')
+
+                try:
+                    with_items = a_module['with_items']
+                    task['with_items'] = with_items
+                except Exception as e:
+                    print(str(e) + ' not found in task definition')
 
                 try:
                     become_as = a_module['become']
+                    task['become'] = become_as
                     try:
                         become_method = a_module['become_method']
+                        task['become_method'] = become_method
                     except Exception as e:
                         print(str(e) + ' not found in task definition')
                 except Exception as e:
@@ -62,43 +86,35 @@ def playbook_generator():
 
                 try:
                     delegate_to = a_module['delegate_to']
+                    task['delegate_to'] = delegate_to
                 except Exception as e:
                     print(str(e) + ' not found in task definition')
 
                 try:
                     no_log = a_module['no_log']
+                    task['no_log'] = no_log
+                except Exception as e:
+                    print(str(e) + ' not found in task definition')
+                    
+                try:
+                    register_out = a_module['register']
+                    task['register'] = register_out
                 except Exception as e:
                     print(str(e) + ' not found in task definition')
 
-                task_name = 'Task_'+str(task_counter)
-                
                 task_counter = task_counter + 1
 
-                if become_as is None or become_as == '':
-                    if delegate_to is None or delegate_to == '':
-                        tasks.append(dict(name=task_name+' - '+a_module['name'], action=dict(module=a_module['module'], args=args),
-                                          no_log=no_log,
-                                          register=task_name + '_out'))
-                    else:
-                        tasks.append(dict(name=task_name+' - '+a_module['name'], action=dict(module=a_module['module'], args=args),
-                                          delegate_to=delegate_to,
-                                          no_log=no_log,
-                                          register=task_name + '_out'))
+                if free_form_found:
+                    module_name = a_module['module']
+                    task[module_name] = a_module['input_fields']['free_form']
                 else:
-                    if delegate_to is None or delegate_to == '':
-                        tasks.append(dict(name=task_name+' - '+a_module['name'], action=dict(module=a_module['module'], args=args), become=True,
-                                          become_method=become_method,
-                                          become_user=become_as,
-                                          no_log=no_log, register=task_name + '_out'))
-                    else:
-                        tasks.append(dict(name=task_name+' - '+a_module['name'], action=dict(module=a_module['module'], args=args), become=True,
-                                          become_method=become_method,
-                                          become_user=become_as,
-                                          delegate_to=delegate_to, no_log=no_log,
-                                          register=task_name + '_out'))
+                    task['action'] = dict(module=a_module['module'], args=args)
+                task['name'] = a_module['name']
+
+                tasks.append(task)
 
             print('Constructing Play JSON')
-            
+
             play_json = dict()
 
             for k, v in a_play.items():
@@ -112,7 +128,7 @@ def playbook_generator():
 
             plays.append(play_json)
 
-        print('Constructing Consolidated Plays YAML')
+        print('Constructing Consolidated Plays YAML from : ' + json.dumps(plays, indent=4))
 
         data = load(json.dumps(plays, indent=4), Loader=Loader)
         play_yaml = dump(data, Dumper=Dumper)
@@ -134,4 +150,4 @@ def playbook_generator():
 
 
 if __name__ == '__main__':
-    app.run(host="0.0.0.0", port=8080, debug=True)
+    app.run(host="0.0.0.0", port=2020, debug=True)
