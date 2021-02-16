@@ -1,6 +1,7 @@
-from flask import Flask, request, Response
+from flask import Flask, request, Response, jsonify, make_response, Blueprint
 from yaml import load, dump
 import json
+from flask_swagger_ui import get_swaggerui_blueprint
 
 
 app = Flask(__name__)
@@ -11,6 +12,53 @@ try:
 except ImportError:
     from yaml import Loader, Dumper
 
+
+REQUEST_API = Blueprint('api', __name__)
+
+def get_blueprint():
+    """Return the blueprint for the main app module"""
+    return REQUEST_API
+
+
+### swagger specific ###
+SWAGGER_URL = '/swagger'
+API_URL = '/static/swagger.json'
+SWAGGERUI_BLUEPRINT = get_swaggerui_blueprint(
+    SWAGGER_URL,
+    API_URL,
+    config={
+        'app_name': "ansible-playbook-json2yaml"
+    }
+)
+app.register_blueprint(SWAGGERUI_BLUEPRINT, url_prefix=SWAGGER_URL)
+### end swagger specific ###
+
+
+app.register_blueprint(get_blueprint())
+
+
+@app.errorhandler(400)
+def handle_400_error(_error):
+    """Return a http 400 error to client"""
+    return make_response(jsonify({'error': 'Misunderstood'}), 400)
+
+
+@app.errorhandler(401)
+def handle_401_error(_error):
+    """Return a http 401 error to client"""
+    return make_response(jsonify({'error': 'Unauthorised'}), 401)
+
+
+@app.errorhandler(404)
+def handle_404_error(_error):
+    """Return a http 404 error to client"""
+    return make_response(jsonify({'error': 'Not found'}), 404)
+
+
+@app.errorhandler(500)
+def handle_500_error(_error):
+    """Return a http 500 error to client"""
+    return make_response(jsonify({'error': 'Server error'}), 500)
 
 @app.route('/generate-yaml', methods=['POST'])
 def playbook_yaml_generator():

@@ -1,2 +1,4 @@
 flask
+flask_restplus
 PyYAML
+flask-swagger-ui==3.20.9

@@ -1,0 +1,166 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "description": "Ansible Playbook JSON to YAML",
+    "version": "1.0.0",
+    "title": "Ansible Playbook JSON to YAML",
+    "license": {
+      "name": "MIT",
+      "url": "https://opensource.org/licenses/MIT"
+    }
+  },
+  "servers": [
+    {
+      "url": "/"
+    }
+  ],
+  "tags": [
+    {
+      "name": "Playbook Request",
+      "description": "API for requesting and return ansible playbook YAMLs"
+    }
+  ],
+  "paths": {
+    "/generate-yaml": {
+      "post": {
+        "tags": [
+          "Playbook Request"
+        ],
+        "summary": "Create a new playbook response",
+        "requestBody": {
+          "description": "Playbook Request Post Object",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/generatePlaybookRequest"
+              }
+            }
+          }
+        },
+        "produces": [
+          "text/yaml"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Failed. Bad post data."
+          }
+        }
+      }
+    }
+  },
+  "components":{
+    "schemas": {
+      "id": {
+        "properties": {
+          "uuid": {
+            "type": "string"
+          }
+        }
+      },
+      "bookRequestPostBody": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string",
+            "format": "string"
+          },
+          "email": {
+            "type": "string",
+            "format": "email"
+          }
+        }
+      },
+      "bookRequest": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string",
+            "format": "string"
+          },
+          "email": {
+            "type": "string",
+            "format": "email"
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "number"
+          }
+        }
+      },
+      "bookRequests": {
+        "type": "object",
+        "properties": {
+          "bookRequest": {
+            "type": "object",
+            "additionalProperties": {
+              "$ref": "#/components/schemas/bookRequest"
+            }
+          }
+        }
+      },
+      "generatePlaybookRequest":
+          {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties":  {
+              "name": {
+                  "type": "string"
+                },
+              "gather_facts": {
+                  "type": "boolean"
+                },
+              "hosts": {
+                  "type": "string"
+                },
+              "vars": {
+                  "type": "object"
+                },
+              "modules": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                      "name": {
+                          "type": "string"
+                        },
+                      "module": {
+                          "type": "string"
+                        },
+                      "ignore_errors": {
+                          "type": "boolean"
+                        },
+                      "no_log": {
+                          "type": "boolean"
+                        },
+                      "delegate_to": {
+                          "type": "string"
+                        },
+                      "become": {
+                          "type": "string"
+                        },
+                      "become_method": {
+                          "type": "string"
+                        },
+                      "when": {
+                          "type": "string"
+                        },
+                      "with_items": {
+                          "type": "string"
+                        },
+                      "input_fields": {
+                          "type": "object"
+                        }
+                    }
+                }
+              }
+            }
+          }
+        }
+    }
+  }
+}
