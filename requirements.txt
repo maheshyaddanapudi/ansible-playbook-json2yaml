@@ -1,4 +1,5 @@
 flask
 flask_restplus
+flask-CORS
 PyYAML
 flask-swagger-ui==3.20.9

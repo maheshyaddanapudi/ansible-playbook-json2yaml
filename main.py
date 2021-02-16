@@ -1,11 +1,12 @@
 from flask import Flask, request, Response, jsonify, make_response, Blueprint
 from yaml import load, dump
 import json
+from flask_cors import CORS
 from flask_swagger_ui import get_swaggerui_blueprint
 
 
 app = Flask(__name__)
-
+CORS(app)
 
 try:
     from yaml import CLoader as Loader, CDumper as Dumper
