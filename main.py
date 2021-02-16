@@ -12,7 +12,6 @@ try:
 except ImportError:
     from yaml import Loader, Dumper
 
-
 REQUEST_API = Blueprint('api', __name__)
 
 def get_blueprint():
