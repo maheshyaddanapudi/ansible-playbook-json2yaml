@@ -2,9 +2,7 @@ FROM tiangolo/uwsgi-nginx-flask:python3.8
 
 MAINTAINER zzzmahesh@gmail.com
 
-ENV PORT 5000
-
-ENV LISTEN_PORT \$PORT
+ENV LISTEN_PORT 5000
 
 COPY requirements.txt /app/
 
@@ -13,4 +11,4 @@ RUN cd /app \
 
 COPY main.py /app/
 
-EXPOSE $PORT
+EXPOSE 5000
