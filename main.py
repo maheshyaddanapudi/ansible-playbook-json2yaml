@@ -167,7 +167,7 @@ def playbook_yaml_generator():
             play_json = dict()
 
             for k, v in a_play.items():
-                if k != 'input_fields' and k != 'modules' and k != 'name':
+                if k != 'input_fields' and k != 'modules' and k != 'name' and v is not None and v != '':
                     play_json[k] = v
 
             play_json['name']=play_name
